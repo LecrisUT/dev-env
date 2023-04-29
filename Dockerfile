@@ -16,18 +16,25 @@ LABEL org.opencontainers.image.source=https://github.com/LecrisUT/dev-env
 #gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
 #EOF
 
-RUN echo -e '\
-[oneAPI]\n\
-name=Intel(R) oneAPI repository\n\
-baseurl=https://yum.repos.intel.com/oneapi\n\
-enabled=1\n\
-gpgcheck=1\n\
-repo_gpgcheck=1\n\
-gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB' > /etc/yum.repos.d/oneAPI.repo
+## TODO: Disabled because Intel key is expired
+#RUN echo -e '\
+#[oneAPI]\n\
+#name=Intel(R) oneAPI repository\n\
+#baseurl=https://yum.repos.intel.com/oneapi\n\
+#enabled=1\n\
+#gpgcheck=1\n\
+#repo_gpgcheck=1\n\
+#gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB' > /etc/yum.repos.d/oneAPI.repo
 
-RUN dnf install -y \
-    cmake git ninja-build \
-    clang clang-tools-extra lld llvm \
-    gcc g++ lcov \
-    findutils procps binutils \
-    intel-oneapi-compiler-dpcpp-cpp
+# Install common tools
+RUN dnf install -y cmake git ninja-build
+
+# Install llvm toolchain
+RUN dnf install -y clang clang-tools-extra lld llvm
+
+# Install gcc toolchain
+RUN dnf install -y gcc g++ lcov
+
+## Install intel toolchain and required utilities
+#RUN dnf install -y findutils procps binutils \
+#    intel-oneapi-compiler-dpcpp-cpp
