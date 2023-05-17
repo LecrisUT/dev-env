@@ -13,9 +13,10 @@ RUN apt update && apt upgrade -y
 RUN apt install -y \
     wget software-properties-common
 # Intel repositories
-RUN wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | \
-      tee /etc/apt/trusted.gpg.d/intel.asc && \
-    add-apt-repository -y "deb https://apt.repos.intel.com/oneapi all main"
+# TODO: Disabled intel toolchain because GPG key issue
+#RUN wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB | \
+#      tee /etc/apt/trusted.gpg.d/intel.asc && \
+#    add-apt-repository -y "deb https://apt.repos.intel.com/oneapi all main"
 # Nightly gcc
 RUN wget https://kayari.org/gcc-latest/gcc-latest.deb
 # LLVM toolchains: see https://apt.llvm.org
@@ -86,8 +87,9 @@ RUN rm llvm.sh
 # Intel toolchain #
 ###################
 
-RUN apt install -y \
-    intel-oneapi-compiler-dpcpp-cpp intel-oneapi-compiler-fortran
+# TODO: Disabled intel toolchain because GPG key issue
+#RUN apt install -y \
+#    intel-oneapi-compiler-dpcpp-cpp intel-oneapi-compiler-fortran
 
 #############################
 # OpenMP and MPI toolchains #
