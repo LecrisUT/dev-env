@@ -29,6 +29,10 @@ RUN dnf5 upgrade -y
 RUN dnf5 install -y \
         ninja-build git cmake
 
+# C sanitizer libraries
+RUN dnf5 install -y \
+    libasan libhwasan libtsan libubsan liblsan
+
 #################
 # GCC Toolchain #
 #################
