@@ -1,4 +1,4 @@
-FROM fedora:latest
+FROM fedora:37
 
 LABEL authors="Cristian Le"
 LABEL org.opencontainers.image.source=https://github.com/LecrisUT/dev-env
@@ -8,8 +8,8 @@ LABEL org.opencontainers.image.source=https://github.com/LecrisUT/dev-env
 ########################
 
 RUN dnf install -y \
-    dnf5 dnf-plugins-core
-RUN dnf5 upgrade -y
+    dnf-plugins-core
+RUN dnf upgrade -y
 # Intel repositories
 # TODO: Disabled intel toolchain because GPG key issue
 #RUN echo -e '\
@@ -26,18 +26,18 @@ RUN dnf5 upgrade -y
 ################
 
 # Normally cmake should be from the Github action with arbitrary version
-RUN dnf5 install -y \
+RUN dnf install -y \
         ninja-build git cmake
 
 # C sanitizer libraries
-RUN dnf5 install -y \
-    libasan libhwasan libtsan libubsan liblsan
+RUN dnf install -y \
+    libasan libtsan libubsan liblsan
 
 #################
 # GCC Toolchain #
 #################
 
-RUN dnf5 install -y \
+RUN dnf install -y \
     gcc gcc-c++ gcc-fortran \
     lcov
 
@@ -45,7 +45,7 @@ RUN dnf5 install -y \
 # LLVM Toolchain #
 ##################
 
-RUN dnf5 install -y \
+RUN dnf install -y \
     clang flang \
     clang-tools-extra
 
@@ -54,21 +54,21 @@ RUN dnf5 install -y \
 ###################
 
 # TODO: Disabled intel toolchain because GPG key issue
-#RUN dnf5 install -y \
+#RUN dnf install -y \
 #    intel-oneapi-compiler-dpcpp-cpp intel-oneapi-compiler-fortran
 
 #############################
 # OpenMP and MPI toolchains #
 #############################
 
-RUN dnf5 install -y \
+RUN dnf install -y \
     openmpi-devel mpich-devel libomp-devel
 
 ###############
 # BLAS/LAPACK #
 ###############
 
-RUN dnf5 install -y \
+RUN dnf install -y \
     flexiblas-devel
 
 ###########
