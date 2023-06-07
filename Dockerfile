@@ -11,15 +11,14 @@ RUN dnf install -y \
     dnf-plugins-core
 RUN dnf upgrade -y
 # Intel repositories
-# TODO: Disabled intel toolchain because GPG key issue
-#RUN echo -e '\
-#[oneAPI]\n\
-#name=Intel(R) oneAPI repository\n\
-#baseurl=https://yum.repos.intel.com/oneapi\n\
-#enabled=1\n\
-#gpgcheck=1\n\
-#repo_gpgcheck=1\n\
-#gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB' > /etc/yum.repos.d/oneAPI.repo
+RUN echo -e '\
+[oneAPI]\n\
+name=Intel(R) oneAPI repository\n\
+baseurl=https://yum.repos.intel.com/oneapi\n\
+enabled=1\n\
+gpgcheck=1\n\
+repo_gpgcheck=1\n\
+gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB' > /etc/yum.repos.d/oneAPI.repo
 
 ################
 # Common tools #
@@ -54,8 +53,8 @@ RUN dnf install -y \
 ###################
 
 # TODO: Disabled intel toolchain because GPG key issue
-#RUN dnf install -y \
-#    intel-oneapi-compiler-dpcpp-cpp intel-oneapi-compiler-fortran
+RUN dnf install -y \
+    intel-oneapi-compiler-dpcpp-cpp intel-oneapi-compiler-fortran
 
 #############################
 # OpenMP and MPI toolchains #
