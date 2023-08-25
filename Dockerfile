@@ -52,9 +52,15 @@ RUN dnf5 install -y \
 # Intel toolchain #
 ###################
 
-# TODO: Disabled intel toolchain because GPG key issue
 RUN dnf5 install -y \
     intel-oneapi-compiler-dpcpp-cpp intel-oneapi-compiler-fortran
+
+# Install intel modules
+RUN /opt/intel/oneapi/modulefiles-setup.sh
+RUN ln -s /opt/intel/oneapi/modulefiles/mpi/latest /usr/share/modulefiles/mpi/intel
+RUN echo -e '\
+export MODULEPATH=$(/usr/share/lmod/lmod/libexec/addto --append MODULEPATH /opt/intel/oneapi/modulefiles\n\
+' > /etc/profile.d/intel-modules.sh
 
 #############################
 # OpenMP and MPI toolchains #
