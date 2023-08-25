@@ -45,7 +45,7 @@ RUN dnf5 install -y \
 ##################
 
 RUN dnf5 install -y \
-    clang flang \
+    clang flang flang-devel \
     clang-tools-extra
 
 ###################
