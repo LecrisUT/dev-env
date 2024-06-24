@@ -104,3 +104,18 @@ EOF
 ###########
 
 RUN dnf5 clean all
+
+##############################
+# Setup user and environment #
+##############################
+
+# See: https://github.com/actions/runner/blob/main/images/Dockerfile
+ENV ImageOS=fedora40
+RUN adduser --uid 1001 runner \
+    && groupadd docker --gid 123 \
+    && usermod -aG wheel runner \
+    && usermod -aG docker runner \
+    && echo "%wheel   ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+WORKDIR /home/runner
+USER runner
