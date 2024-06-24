@@ -30,7 +30,7 @@ jobs:
     needs: [pre_commit]
     uses: ./.github/workflows/step_build-and-push.yaml
     with:
-      push: ${{ github.event_name == 'push' }}
+      push: ${{ github.event_name == 'push' || github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Push PR image') }}
     permissions:
       contents: read
       packages: write
