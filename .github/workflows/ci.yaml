@@ -1,42 +1,60 @@
-name: Create and publish a Docker image
+name: CI
+run-name: >
+  CI (${{ github.event_name }})
+  ${{ github.event_name == 'pull_request' && format('PR#{0}', github.event.number) || '' }}
 
 on:
+  pull_request:
   push:
     branches: [ 'main', 'f*' ]
     tags: [ 'v*' ]
+  schedule:
+    - cron: 0 0 * * 2
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-and-push-image:
-    runs-on: ubuntu-latest
+  pre_commit:
+    name: pre-commit
+    uses: ./.github/workflows/step_pre-commit.yaml
+
+  build_and_push:
+    name: >
+      🛠️ Build
+      ${{ github.event_name == 'push' && '-> 🚀 Push'  || '' }}
+    needs: [pre_commit]
+    uses: ./.github/workflows/step_build-and-push.yaml
+    with:
+      push: ${{ github.event_name == 'push' }}
     permissions:
       contents: read
       packages: write
 
+  check_images:
+    name: 🔍 Check
+    needs: [pre_commit]
+    uses: ./.github/workflows/step_check-images.yaml
+    with:
+      make_pr: ${{ github.event_name == 'schedule' }}
+    permissions:
+      contents: read
+      packages: read
+    # For now only run this check on schedule
+    if: github.event_name == 'schedule'
+
+  pass:
+    name: ✅ Pass
+    needs: [ pre_commit, build_and_push, check_images ]
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Log in to the Container registry
-        uses: docker/login-action@v2
+      - name: Check all CI jobs
+        uses: re-actors/alls-green@release/v1
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          allowed-skips: check_images
+          jobs: ${{ toJSON(needs) }}
+    if: always()

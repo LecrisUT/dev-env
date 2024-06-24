@@ -1,4 +1,4 @@
-FROM fedora:latest
+FROM fedora:40
 
 LABEL authors="Cristian Le"
 LABEL org.opencontainers.image.source=https://github.com/LecrisUT/dev-env
@@ -11,14 +11,16 @@ RUN dnf install -y \
     dnf5 dnf-plugins-core
 RUN dnf5 upgrade -y
 # Intel repositories
-RUN echo -e '\
-[oneAPI]\n\
-name=Intel(R) oneAPI repository\n\
-baseurl=https://yum.repos.intel.com/oneapi\n\
-enabled=1\n\
-gpgcheck=1\n\
-repo_gpgcheck=1\n\
-gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB' > /etc/yum.repos.d/oneAPI.repo
+
+COPY <<EOF /etc/yum.repos.d/oneAPI.repo
+[oneAPI]
+name=Intel(R) oneAPI repository
+baseurl=https://yum.repos.intel.com/oneapi
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+EOF
 
 ################
 # Common tools #
@@ -45,7 +47,7 @@ RUN dnf5 install -y \
 ##################
 
 RUN dnf5 install -y \
-    clang flang flang-devel \
+    clang flang \
     clang-tools-extra
 
 ###################
@@ -57,9 +59,9 @@ RUN dnf5 install -y \
 
 # Install intel modules
 RUN /opt/intel/oneapi/modulefiles-setup.sh
-RUN echo -e '\
-export MODULEPATH=$(/usr/share/lmod/lmod/libexec/addto --append MODULEPATH /opt/intel/oneapi/modulefiles)\n\
-' > /etc/profile.d/intel-modules.sh
+COPY <<EOF /etc/profile.d/intel-modules.sh
+export MODULEPATH=$(/usr/share/lmod/lmod/libexec/addto --append MODULEPATH /opt/intel/oneapi/modulefiles)
+EOF
 
 #############################
 # OpenMP and MPI toolchains #
@@ -79,3 +81,5 @@ RUN dnf5 install -y \
 ###########
 # Cleanup #
 ###########
+
+RUN dnf5 clean all

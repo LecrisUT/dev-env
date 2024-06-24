@@ -1,0 +1,50 @@
+on:
+  workflow_call:
+    inputs:
+      make_pr:
+        description: Create a PR if outdated
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  check_image:
+    runs-on: ubuntu-latest
+    container: "ghcr.io/lecrisut/dev-env:${{ matrix.tag }}"
+    strategy:
+      matrix:
+        tag: ["main", "f39"]
+      fail-fast: false
+    steps:
+      - run: |
+          echo "::group::Check security updates"
+          if dnf5 check-update --security; then
+            echo "✔️ All good!"
+          else
+            echo "::error::Security update required"
+            exit 1
+          fi
+          echo "::endgroup::"
+          echo "::group::Check main packages"
+          # See the Containerfile for breakdown
+          packages=(
+            "cmake"
+            "clang"
+            "gcc"
+            "intel-oneapi-compiler-dpcpp-cpp"
+            "openmpi-devel"
+            "mpich-devel"
+            "libomp-devel"
+            "flexiblas-devel"
+          )
+          if dnf5 check-update ${packages[@]}; then
+            echo "✔️ All good!"
+          else
+            echo "::error::Package updates required"
+            exit 1
+          fi
+          echo "::endgroup::"
+      # TODO: Create a PR to bump the containerfile
