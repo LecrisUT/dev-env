@@ -117,5 +117,28 @@ RUN adduser --uid 1001 runner \
     && usermod -aG docker runner \
     && echo "%wheel   ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
 
+# Custom environment setup
+COPY <<"EOF" /etc/profile.d/setup-runner.sh
+# Default variables
+TOOLCHAIN=${TOOLCHAIN:-gcc}
+MPI_VARIANT=${MPI_VARIANT:-serial}
+
+# Setup environment
+if [[ "${TOOLCHAIN,,}" == "intel" ]]; then
+	source /opt/intel/oneapi/setvars.sh
+fi
+if [[ "${MPI_VARIANT,,}" != "serial" ]]; then
+	module load mpi/${MPI_VARIANT}
+fi
+
+# Print environment
+echo "::group::Available modules"
+module avail
+echo "::endgroup::"
+echo "::group::Loaded modules"
+module list
+echo "::endgroup::"
+EOF
+
 WORKDIR /home/runner
 USER runner
