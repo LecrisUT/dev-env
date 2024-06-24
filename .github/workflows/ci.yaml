@@ -43,3 +43,15 @@ jobs:
       packages: read
     # For now only run this check on schedule
     if: github.event_name == 'schedule'
+
+  pass:
+    name: ✅ Pass
+    needs: [ pre_commit, build_and_push, check_images ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check all CI jobs
+        uses: re-actors/alls-green@release/v1
+        with:
+          allowed-skips: check_images
+          jobs: ${{ toJSON(needs) }}
+    if: always()
