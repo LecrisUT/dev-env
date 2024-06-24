@@ -78,6 +78,14 @@ RUN ln -s /opt/intel/oneapi/modulefiles/mpi/latest /usr/share/modulefiles/mpi/in
 RUN dnf5 install -y \
     flexiblas-devel
 
+
+###########################
+# Other development tools #
+###########################
+
+RUN dnf5 install -y \
+    python3-devel
+
 #########################
 # Github specific fixes #
 #########################
