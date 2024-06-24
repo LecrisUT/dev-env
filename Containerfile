@@ -78,6 +78,19 @@ RUN ln -s /opt/intel/oneapi/modulefiles/mpi/latest /usr/share/modulefiles/mpi/in
 RUN dnf5 install -y \
     flexiblas-devel
 
+#########################
+# Github specific fixes #
+#########################
+
+# Mimic Ubuntu in order to be able to download experimental python
+# https://github.com/actions/setup-python/issues/718
+COPY <<EOF /etc/lsb-release
+DISTRIB_ID=Ubuntu
+DISTRIB_RELEASE=24.04
+DISTRIB_CODENAME=noble
+DISTRIB_DESCRIPTION="Ubuntu 24.04 LTS"
+EOF
+
 ###########
 # Cleanup #
 ###########
