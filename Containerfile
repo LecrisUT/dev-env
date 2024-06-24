@@ -58,10 +58,7 @@ RUN dnf5 install -y \
     intel-oneapi-compiler-dpcpp-cpp intel-oneapi-compiler-fortran
 
 # Install intel modules
-RUN /opt/intel/oneapi/modulefiles-setup.sh
-COPY <<EOF /etc/profile.d/intel-modules.sh
-export MODULEPATH=$(/usr/share/lmod/lmod/libexec/addto --append MODULEPATH /opt/intel/oneapi/modulefiles)
-EOF
+RUN /opt/intel/oneapi/modulefiles-setup.sh --output-dir=/etc/modulefiles/intel
 
 #############################
 # OpenMP and MPI toolchains #
@@ -69,7 +66,7 @@ EOF
 
 RUN dnf5 install -y \
     openmpi-devel mpich-devel libomp-devel
-RUN ln -s /opt/intel/oneapi/modulefiles/mpi/latest /usr/share/modulefiles/mpi/intel
+RUN ln -s /etc/modulefiles/intel/mpi/latest /usr/share/modulefiles/mpi/intel
 
 ###############
 # BLAS/LAPACK #
