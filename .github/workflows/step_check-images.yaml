@@ -16,7 +16,7 @@ jobs:
     container: "ghcr.io/lecrisut/dev-env:${{ matrix.tag }}"
     strategy:
       matrix:
-        tag: ["main", "f37"]
+        tag: ["main", "f39"]
       fail-fast: false
     steps:
       - run: |
