@@ -5,6 +5,8 @@ on:
   push:
     branches: [ 'main', 'f*' ]
     tags: [ 'v*' ]
+  schedule:
+    - cron: 0 0 * * 2
 
 permissions:
   contents: read
@@ -24,3 +26,14 @@ jobs:
     permissions:
       contents: read
       packages: write
+
+  check_images:
+    name: 🔍 Check
+    uses: ./.github/workflows/step_check-images.yaml
+    with:
+      make_pr: ${{ github.event_name == 'schedule' }}
+    permissions:
+      contents: read
+      packages: read
+    # For now only run this check on schedule
+    if: github.event_name == 'schedule'
