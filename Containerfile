@@ -127,6 +127,8 @@ fi
 if [[ "${MPI_VARIANT,,}" != "serial" ]]; then
 	module load mpi/${MPI_VARIANT}
 fi
+# Github action may change the $HOME when initializing containers
+export PATH=$HOME/.local/bin:$PATH
 
 # Print environment
 echo "::group::Available modules"
