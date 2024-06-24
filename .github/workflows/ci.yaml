@@ -16,10 +16,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  pre_commit:
+    name: pre-commit
+    uses: ./.github/workflows/step_pre-commit.yaml
+
   build_and_push:
     name: >
       🛠️ Build
       ${{ github.event_name == 'push' && '-> 🚀 Push'  || '' }}
+    needs: [pre_commit]
     uses: ./.github/workflows/step_build-and-push.yaml
     with:
       push: ${{ github.event_name == 'push' }}
@@ -29,6 +34,7 @@ jobs:
 
   check_images:
     name: 🔍 Check
+    needs: [pre_commit]
     uses: ./.github/workflows/step_check-images.yaml
     with:
       make_pr: ${{ github.event_name == 'schedule' }}
