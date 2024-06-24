@@ -58,10 +58,7 @@ RUN dnf5 install -y \
     intel-oneapi-compiler-dpcpp-cpp intel-oneapi-compiler-fortran
 
 # Install intel modules
-RUN /opt/intel/oneapi/modulefiles-setup.sh
-COPY <<EOF /etc/profile.d/intel-modules.sh
-export MODULEPATH=$(/usr/share/lmod/lmod/libexec/addto --append MODULEPATH /opt/intel/oneapi/modulefiles)
-EOF
+RUN /opt/intel/oneapi/modulefiles-setup.sh --output-dir=/etc/modulefiles/intel
 
 #############################
 # OpenMP and MPI toolchains #
@@ -69,7 +66,7 @@ EOF
 
 RUN dnf5 install -y \
     openmpi-devel mpich-devel libomp-devel
-RUN ln -s /opt/intel/oneapi/modulefiles/mpi/latest /usr/share/modulefiles/mpi/intel
+RUN ln -s /etc/modulefiles/intel/mpi/latest /usr/share/modulefiles/mpi/intel
 
 ###############
 # BLAS/LAPACK #
@@ -78,8 +75,69 @@ RUN ln -s /opt/intel/oneapi/modulefiles/mpi/latest /usr/share/modulefiles/mpi/in
 RUN dnf5 install -y \
     flexiblas-devel
 
+
+###########################
+# Other development tools #
+###########################
+
+RUN dnf5 install -y \
+    python3-devel
+
+#########################
+# Github specific fixes #
+#########################
+
+# Mimic Ubuntu in order to be able to download experimental python
+# https://github.com/actions/setup-python/issues/718
+COPY <<EOF /etc/lsb-release
+DISTRIB_ID=Ubuntu
+DISTRIB_RELEASE=24.04
+DISTRIB_CODENAME=noble
+DISTRIB_DESCRIPTION="Ubuntu 24.04 LTS"
+EOF
+
 ###########
 # Cleanup #
 ###########
 
 RUN dnf5 clean all
+
+##############################
+# Setup user and environment #
+##############################
+
+# See: https://github.com/actions/runner/blob/main/images/Dockerfile
+ENV ImageOS=fedora39
+RUN adduser --uid 1001 runner \
+    && groupadd docker --gid 123 \
+    && usermod -aG wheel runner \
+    && usermod -aG docker runner \
+    && echo "%wheel   ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Custom environment setup
+COPY <<"EOF" /etc/profile.d/setup-runner.sh
+# Default variables
+TOOLCHAIN=${TOOLCHAIN:-gcc}
+MPI_VARIANT=${MPI_VARIANT:-serial}
+
+# Setup environment
+if [[ "${TOOLCHAIN,,}" == "intel" ]]; then
+	source /opt/intel/oneapi/setvars.sh
+fi
+if [[ "${MPI_VARIANT,,}" != "serial" ]]; then
+	module load mpi/${MPI_VARIANT}
+fi
+# Github action may change the $HOME when initializing containers
+export PATH=$HOME/.local/bin:$PATH
+
+# Print environment
+echo "::group::Available modules"
+module avail
+echo "::endgroup::"
+echo "::group::Loaded modules"
+module list
+echo "::endgroup::"
+EOF
+
+WORKDIR /home/runner
+USER runner
