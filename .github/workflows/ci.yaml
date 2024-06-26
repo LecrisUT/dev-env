@@ -5,6 +5,7 @@ run-name: >
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
     branches: [ 'main', 'f*' ]
     tags: [ 'v*' ]
