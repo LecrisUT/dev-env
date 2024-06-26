@@ -10,6 +10,21 @@ on:
     tags: [ 'v*' ]
   schedule:
     - cron: 0 0 * * 2
+  workflow_dispatch:
+    inputs:
+      build:
+        type: boolean
+        default: false
+        description: Rebuild the branch image
+      push:
+        type: boolean
+        default: false
+        description: Push the branch image
+      check-images:
+        type: boolean
+        default: true
+        description: Check images
+
 
 permissions:
   contents: read
@@ -27,25 +42,35 @@ jobs:
     name: >
       🛠️ Build
       ${{ github.event_name == 'push' && '-> 🚀 Push'  || '' }}
-    needs: [pre_commit]
+    needs: [ pre_commit ]
     uses: ./.github/workflows/step_build-and-push.yaml
     with:
-      push: ${{ github.event_name == 'push' || github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Push PR image') }}
+      push: >-
+        ${{
+          github.event_name == 'push' ||
+          github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Push PR image') ||
+          github.event_name == 'workflow_dispatch' && inputs.push
+        }}
     permissions:
       contents: read
       packages: write
+    if: >
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'workflow_dispatch' && inputs.build)
 
   check_images:
     name: 🔍 Check
-    needs: [pre_commit]
+    needs: [ pre_commit ]
     uses: ./.github/workflows/step_check-images.yaml
     with:
       make_pr: ${{ github.event_name == 'schedule' }}
     permissions:
       contents: read
       packages: read
-    # For now only run this check on schedule
-    if: github.event_name == 'schedule'
+    if: >
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && inputs.check-images)
 
   pass:
     name: ✅ Pass
