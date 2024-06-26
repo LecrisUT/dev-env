@@ -5,6 +5,10 @@ on:
         description: Push to github registry
         type: boolean
         default: false
+      rebuild:
+        description: Rebuild image
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -40,5 +44,6 @@ jobs:
           push: ${{ inputs.push }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          no-cache: ${{ inputs.push || inputs.rebuild }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
