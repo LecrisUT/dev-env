@@ -21,7 +21,7 @@ jobs:
     steps:
       - run: |
           echo "::group::Check security updates"
-          if dnf5 check-update --security; then
+          if dnf5 -y check-update --security; then
             echo "✔️ All good!"
           else
             echo "::error::Security update required"
@@ -40,7 +40,7 @@ jobs:
             "libomp-devel"
             "flexiblas-devel"
           )
-          if dnf5 check-update ${packages[@]}; then
+          if dnf5 -y check-update ${packages[@]}; then
             echo "✔️ All good!"
           else
             echo "::error::Package updates required"
