@@ -95,6 +95,10 @@ DISTRIB_CODENAME=noble
 DISTRIB_DESCRIPTION="Ubuntu 24.04 LTS"
 EOF
 
+# Add the github CLI
+RUN dnf5 install -y \
+    gh
+
 ###########
 # Cleanup #
 ###########
