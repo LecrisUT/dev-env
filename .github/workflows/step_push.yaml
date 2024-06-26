@@ -1,0 +1,45 @@
+on:
+  workflow_call:
+    inputs:
+      image:
+        type: string
+        required: true
+        description: Image output of redhat-actions/buildah-build
+      tags:
+        type: string
+        required: true
+        description: Tags output of redhat-actions/buildah-build
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  push-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      # GitHub does not provide lower/upper functions
+      # https://github.com/orgs/community/discussions/25768
+      - name: Fix registry name
+        run: |
+          echo "REGISTRY=ghcr.io/${OWNER,,}" >>${GITHUB_ENV}
+        env:
+          OWNER: ${{ github.repository_owner }}
+      - uses: redhat-actions/podman-login@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: image
+      - name: Load image to upload
+        run: |
+          podman load --input dev-env-image.tar
+          podman tag ${{ inputs.image }} ${{ inputs.tags }}
+          podman images
+      - uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ inputs.image }}
+          tags: ${{ inputs.tags }}

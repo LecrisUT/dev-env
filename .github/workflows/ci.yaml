@@ -23,21 +23,17 @@ jobs:
     name: pre-commit
     uses: ./.github/workflows/step_pre-commit.yaml
 
-  build_and_push:
-    name: >
-      🛠️ Build
-      ${{ github.event_name == 'push' && '-> 🚀 Push'  || '' }}
-    needs: [pre_commit]
-    uses: ./.github/workflows/step_build-and-push.yaml
+  build:
+    name: 🛠️ Build
+    needs: [ pre_commit ]
+    uses: ./.github/workflows/step_build.yaml
     with:
-      push: ${{ github.event_name == 'push' || github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Push PR image') }}
-    permissions:
-      contents: read
-      packages: write
+      upload: ${{ github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Push PR image') }}
+    if: github.event_name != 'schedule'
 
   check_images:
     name: 🔍 Check
-    needs: [pre_commit]
+    needs: [ pre_commit ]
     uses: ./.github/workflows/step_check-images.yaml
     with:
       make_pr: ${{ github.event_name == 'schedule' }}
@@ -47,14 +43,28 @@ jobs:
     # For now only run this check on schedule
     if: github.event_name == 'schedule'
 
+  push:
+    name: 🚀 Push
+    needs: [ build ]
+    uses: ./.github/workflows/step_push.yaml
+    permissions:
+      contents: read
+      packages: write
+    with:
+      image: ${{ needs.build.outputs.image }}
+      tags: ${{ needs.build.outputs.tags }}
+    if: >
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Push PR image'))
+
   pass:
     name: ✅ Pass
-    needs: [ pre_commit, build_and_push, check_images ]
+    needs: [ pre_commit, build, check_images, push ]
     runs-on: ubuntu-latest
     steps:
       - name: Check all CI jobs
         uses: re-actors/alls-green@release/v1
         with:
-          allowed-skips: check_images
+          allowed-skips: check_images, push
           jobs: ${{ toJSON(needs) }}
     if: always()

@@ -1,0 +1,48 @@
+on:
+  workflow_call:
+    inputs:
+      upload:
+        type: boolean
+        default: false
+        description: Upload image artifact
+    outputs:
+      image:
+        description: Image output of redhat-actions/buildah-build
+        value: ${{ jobs.build-image.outputs.image }}
+      tags:
+        description: Tags output of redhat-actions/buildah-build
+        value: ${{ jobs.build-image.outputs.tags }}
+
+permissions:
+  contents: read
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ghcr.io/${{ github.repository }}
+      - uses: docker/build-push-action@v6
+        id: build
+        with:
+          context: .
+          file: Containerfile
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      - name: Save image
+        run: |
+          docker images
+          docker save ${{ steps.build.outputs.imageid }} > dev-env-image.tar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: image
+          path: dev-env-image.tar
+        if: inputs.upload
+    outputs:
+      image: ${{ steps.build.outputs.imageid }}
+      tags: ${{ steps.meta.outputs.tags }}
