@@ -39,9 +39,7 @@ jobs:
     uses: ./.github/workflows/step_pre-commit.yaml
 
   build_and_push:
-    name: >
-      🛠️ Build
-      ${{ github.event_name == 'push' && '-> 🚀 Push'  || '' }}
+    name: 🛠️ Build
     needs: [ pre_commit ]
     uses: ./.github/workflows/step_build-and-push.yaml
     with:

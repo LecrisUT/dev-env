@@ -11,7 +11,9 @@ permissions:
   packages: read
 
 jobs:
-  check_image:
+  updates:
+    name: >
+      Updates ${{ matrix.tag }}
     runs-on: ubuntu-latest
     container: "ghcr.io/lecrisut/dev-env:${{ matrix.tag }}"
     strategy:
