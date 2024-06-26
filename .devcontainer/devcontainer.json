@@ -1,0 +1,19 @@
+{
+  "name": "Fedora dev-env C/C++/Fortran",
+  "build": {
+    "dockerfile": "../Containerfile"
+  },
+  "features": {},
+  "containerEnv": {
+    "TOOLCHAIN": "${localEnv:TOOLCHAIN:gcc}",
+    "MPI_VARIANT": "${localEnv:MPI_VARIANT:serial}"
+  },
+  "postCreateCommand": {
+    "fedora-version": "cat /etc/fedora-release"
+  },
+  "customizations": {
+    "jetbrains": {
+      "backend": "CLion"
+    }
+  }
+}
