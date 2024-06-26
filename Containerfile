@@ -1,7 +1,6 @@
 FROM fedora:40
 
 LABEL authors="Cristian Le"
-LABEL org.opencontainers.image.source=https://github.com/LecrisUT/dev-env
 
 ########################
 # Prepare Repositories #
