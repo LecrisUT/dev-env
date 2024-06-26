@@ -12,6 +12,9 @@ permissions:
 
 jobs:
   build-and-push-image:
+    name: >
+      🛠️ Build
+      ${{ inputs.push && ' -> 🚀 Push'  || ' only' }}
     runs-on: ubuntu-latest
 
     steps:
