@@ -1,7 +1,6 @@
 FROM fedora:39
 
 LABEL authors="Cristian Le"
-LABEL org.opencontainers.image.source=https://github.com/LecrisUT/dev-env
 
 ########################
 # Prepare Repositories #
@@ -96,6 +95,10 @@ DISTRIB_CODENAME=noble
 DISTRIB_DESCRIPTION="Ubuntu 24.04 LTS"
 EOF
 
+# Add the github CLI
+RUN dnf5 install -y \
+    gh
+
 ###########
 # Cleanup #
 ###########
@@ -108,7 +111,8 @@ RUN dnf5 clean all
 
 # See: https://github.com/actions/runner/blob/main/images/Dockerfile
 ENV ImageOS=fedora39
-RUN adduser --uid 1001 runner \
+ENV PATH="/github/home/.local/bin:$PATH"
+RUN adduser --uid 1001 runner -d /github/home \
     && groupadd docker --gid 123 \
     && usermod -aG wheel runner \
     && usermod -aG docker runner \
@@ -127,8 +131,6 @@ fi
 if [[ "${MPI_VARIANT,,}" != "serial" ]]; then
 	module load mpi/${MPI_VARIANT}
 fi
-# Github action may change the $HOME when initializing containers
-export PATH=$HOME/.local/bin:$PATH
 
 # Print environment
 echo "::group::Available modules"
@@ -139,5 +141,5 @@ module list
 echo "::endgroup::"
 EOF
 
-WORKDIR /home/runner
+WORKDIR /github/home
 USER runner

@@ -5,6 +5,10 @@ on:
         description: Push to github registry
         type: boolean
         default: false
+      rebuild:
+        description: Rebuild image
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -12,14 +16,24 @@ permissions:
 
 jobs:
   build-and-push-image:
+    name: >
+      🛠️ Build
+      ${{ inputs.push && ' -> 🚀 Push'  || ' only' }}
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
       - uses: docker/metadata-action@v5
         id: meta
         with:
           images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=ref,event=pr
+            # set latest tag for default branch
+            type=raw,value=latest,enable={{is_default_branch}}
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -29,6 +43,10 @@ jobs:
         with:
           context: .
           file: Containerfile
+          pull: true
           push: ${{ inputs.push }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          no-cache: ${{ inputs.push || inputs.rebuild }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
