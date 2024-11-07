@@ -83,6 +83,6 @@ jobs:
       - name: Check all CI jobs
         uses: re-actors/alls-green@release/v1
         with:
-          allowed-skips: check_images
+          allowed-skips: check_images, build_and_push
           jobs: ${{ toJSON(needs) }}
     if: always()
