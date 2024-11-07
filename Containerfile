@@ -49,18 +49,6 @@ RUN dnf5 install -y \
     clang flang \
     clang-tools-extra
 
-###################
-# Intel toolchain #
-###################
-
-RUN dnf5 install -y \
-    intel-oneapi-compiler-dpcpp-cpp \
-    intel-oneapi-compiler-fortran \
-    intel-oneapi-mpi
-
-# Install intel modules
-RUN /opt/intel/oneapi/modulefiles-setup.sh --output-dir=/etc/modulefiles/intel
-
 #############################
 # OpenMP and MPI toolchains #
 #############################
@@ -76,6 +64,19 @@ RUN ln -s /etc/modulefiles/intel/mpi/latest /usr/share/modulefiles/mpi/intel
 RUN dnf5 install -y \
     flexiblas-devel
 
+###################
+# Intel toolchain #
+###################
+
+# Intel toolchain needs to be installed after any other tools
+# See: https://community.intel.com/t5/oneAPI-Registration-Download/Fedora-package-interferes-with-OS-pacakges/m-p/1641662
+RUN dnf5 install -y \
+    intel-oneapi-compiler-dpcpp-cpp \
+    intel-oneapi-compiler-fortran \
+    intel-oneapi-mpi
+
+# Install intel modules
+RUN /opt/intel/oneapi/modulefiles-setup.sh --output-dir=/etc/modulefiles/intel
 
 ###########################
 # Other development tools #
