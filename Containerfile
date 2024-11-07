@@ -1,4 +1,4 @@
-FROM fedora:40
+FROM fedora:41
 
 LABEL authors="Cristian Le"
 
@@ -6,9 +6,7 @@ LABEL authors="Cristian Le"
 # Prepare Repositories #
 ########################
 
-RUN dnf install -y \
-    dnf5 dnf-plugins-core
-RUN dnf5 upgrade -y
+RUN dnf upgrade -y
 # Intel repositories
 
 COPY <<EOF /etc/yum.repos.d/oneAPI.repo
@@ -26,18 +24,18 @@ EOF
 ################
 
 # Normally cmake should be from the Github action with arbitrary version
-RUN dnf5 install -y \
+RUN dnf install -y \
         ninja-build git cmake
 
 # C sanitizer libraries
-RUN dnf5 install -y \
+RUN dnf install -y \
     libasan libhwasan libtsan libubsan liblsan
 
 #################
 # GCC Toolchain #
 #################
 
-RUN dnf5 install -y \
+RUN dnf install -y \
     gcc gcc-c++ gcc-fortran \
     lcov
 
@@ -45,7 +43,7 @@ RUN dnf5 install -y \
 # LLVM Toolchain #
 ##################
 
-RUN dnf5 install -y \
+RUN dnf install -y \
     clang flang \
     clang-tools-extra
 
@@ -53,7 +51,7 @@ RUN dnf5 install -y \
 # OpenMP and MPI toolchains #
 #############################
 
-RUN dnf5 install -y \
+RUN dnf install -y \
     openmpi-devel mpich-devel libomp-devel
 RUN ln -s /etc/modulefiles/intel/mpi/latest /usr/share/modulefiles/mpi/intel
 
@@ -61,7 +59,7 @@ RUN ln -s /etc/modulefiles/intel/mpi/latest /usr/share/modulefiles/mpi/intel
 # BLAS/LAPACK #
 ###############
 
-RUN dnf5 install -y \
+RUN dnf install -y \
     flexiblas-devel
 
 ###################
@@ -70,7 +68,7 @@ RUN dnf5 install -y \
 
 # Intel toolchain needs to be installed after any other tools
 # See: https://community.intel.com/t5/oneAPI-Registration-Download/Fedora-package-interferes-with-OS-pacakges/m-p/1641662
-RUN dnf5 install -y \
+RUN dnf install -y \
     intel-oneapi-compiler-dpcpp-cpp \
     intel-oneapi-compiler-fortran \
     intel-oneapi-mpi
@@ -82,7 +80,7 @@ RUN /opt/intel/oneapi/modulefiles-setup.sh --output-dir=/etc/modulefiles/intel
 # Other development tools #
 ###########################
 
-RUN dnf5 install -y \
+RUN dnf install -y \
     python3-devel
 
 #########################
@@ -99,14 +97,14 @@ DISTRIB_DESCRIPTION="Ubuntu 24.04 LTS"
 EOF
 
 # Add the github CLI
-RUN dnf5 install -y \
+RUN dnf install -y \
     gh
 
 ###########
 # Cleanup #
 ###########
 
-RUN dnf5 clean all
+RUN dnf clean all
 
 ##############################
 # Setup user and environment #
