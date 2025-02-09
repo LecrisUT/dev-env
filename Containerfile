@@ -71,7 +71,7 @@ EOF
 RUN dnf install -y \
     intel-oneapi-compiler-dpcpp-cpp \
     intel-oneapi-compiler-fortran \
-    intel-oneapi-mpi
+    intel-oneapi-mpi-devel
 
 # Install intel modules
 RUN /opt/intel/oneapi/modulefiles-setup.sh --output-dir=/etc/modulefiles/intel
