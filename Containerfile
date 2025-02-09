@@ -7,17 +7,6 @@ LABEL authors="Cristian Le"
 ########################
 
 RUN dnf upgrade -y
-# Intel repositories
-
-COPY <<EOF /etc/yum.repos.d/oneAPI.repo
-[oneAPI]
-name=Intel(R) oneAPI repository
-baseurl=https://yum.repos.intel.com/oneapi
-enabled=1
-gpgcheck=1
-repo_gpgcheck=1
-gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
-EOF
 
 ################
 # Common tools #
@@ -53,7 +42,7 @@ RUN dnf install -y \
 
 RUN dnf install -y \
     openmpi-devel mpich-devel libomp-devel
-RUN ln -s /etc/modulefiles/intel/mpi/latest /usr/share/modulefiles/mpi/intel
+RUN ln -s /etc/modulefiles/intel/mpi/latest /usr/share/modulefiles/mpi/intel-$(arch)
 
 ###############
 # BLAS/LAPACK #
@@ -68,6 +57,16 @@ RUN dnf install -y \
 
 # Intel toolchain needs to be installed after any other tools
 # See: https://community.intel.com/t5/oneAPI-Registration-Download/Fedora-package-interferes-with-OS-pacakges/m-p/1641662
+
+COPY <<EOF /etc/yum.repos.d/oneAPI.repo
+[oneAPI]
+name=Intel(R) oneAPI repository
+baseurl=https://yum.repos.intel.com/oneapi
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+EOF
 RUN dnf install -y \
     intel-oneapi-compiler-dpcpp-cpp \
     intel-oneapi-compiler-fortran \
