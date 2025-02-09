@@ -42,7 +42,7 @@ RUN dnf install -y \
 
 RUN dnf install -y \
     openmpi-devel mpich-devel libomp-devel
-RUN ln -s /etc/modulefiles/intel/mpi/latest /usr/share/modulefiles/mpi/intel-$(arch)
+RUN ln -s /etc/modulefiles/intel/mpi/latest "/usr/share/modulefiles/mpi/intel-$(arch)"
 
 ###############
 # BLAS/LAPACK #
@@ -67,6 +67,7 @@ gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
 EOF
+
 RUN dnf install -y \
     intel-oneapi-compiler-dpcpp-cpp \
     intel-oneapi-compiler-fortran \
