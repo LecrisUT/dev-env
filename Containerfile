@@ -1,4 +1,10 @@
-FROM fedora:41
+ARG fedora_version=latest
+
+FROM fedora:$fedora_version
+
+ARG toolchain_gcc=true
+ARG toolchain_llvm=true
+ARG toolchain_intel=true
 
 LABEL authors="Cristian Le"
 
@@ -12,44 +18,57 @@ RUN dnf upgrade -y
 # Common tools #
 ################
 
-# Normally cmake should be from the Github action with arbitrary version
-RUN dnf install -y \
-        ninja-build git cmake
+RUN <<EOR
+# Build tools
+dnf install -y \
+  cmake ninja-build
 
 # C sanitizer libraries
 RUN dnf install -y \
     libasan libhwasan libtsan libubsan liblsan
 
+# Other common tools
+dnf install -y \
+  python3-devel git
+
+# Github CLI
+dnf install -y gh
+EOR
+
 #################
 # GCC Toolchain #
 #################
 
-RUN dnf install -y \
-    gcc gcc-c++ gcc-fortran \
-    lcov
+RUN <<EOR
+if [ "$toolchain_gcc" = "true" ]; then
+  dnf install -y \
+    gcc gcc-c++ gcc-fortran
+fi
+EOR
 
 ##################
 # LLVM Toolchain #
 ##################
 
-RUN dnf install -y \
+RUN <<EOR
+if [ "$toolchain_llvm" = "true" ]; then
+  dnf install -y \
     clang flang \
     clang-tools-extra
+fi
+EOR
 
 #############################
 # OpenMP and MPI toolchains #
 #############################
 
-RUN dnf install -y \
-    openmpi-devel mpich-devel libomp-devel
-RUN ln -s /etc/modulefiles/intel/mpi/latest "/usr/share/modulefiles/mpi/intel-$(arch)"
-
-###############
-# BLAS/LAPACK #
-###############
-
-RUN dnf install -y \
-    flexiblas-devel
+RUN <<EOR
+# OpenMP and MPI toolchains (built for gcc actually)
+dnf install -y \
+  openmpi-devel mpich-devel libomp-devel
+# BLAS/LAPACK: Using flexiblas as modern wrapper
+dnf install -y flexiblas-devel
+EOR
 
 ###################
 # Intel toolchain #
@@ -58,7 +77,9 @@ RUN dnf install -y \
 # Intel toolchain needs to be installed after any other tools
 # See: https://community.intel.com/t5/oneAPI-Registration-Download/Fedora-package-interferes-with-OS-pacakges/m-p/1641662
 
-COPY <<EOF /etc/yum.repos.d/oneAPI.repo
+RUN <<EOR
+if [ "$toolchain_intel" = "true" ]; then
+  cat <<EOF > /etc/yum.repos.d/oneAPI.repo
 [oneAPI]
 name=Intel(R) oneAPI repository
 baseurl=https://yum.repos.intel.com/oneapi
@@ -67,38 +88,15 @@ gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
 EOF
-
-RUN dnf install -y \
+  dnf install -y \
     intel-oneapi-compiler-dpcpp-cpp \
     intel-oneapi-compiler-fortran \
     intel-oneapi-mpi-devel
-
-# Install intel modules
-RUN /opt/intel/oneapi/modulefiles-setup.sh --output-dir=/etc/modulefiles/intel
-
-###########################
-# Other development tools #
-###########################
-
-RUN dnf install -y \
-    python3-devel
-
-#########################
-# Github specific fixes #
-#########################
-
-# Mimic Ubuntu in order to be able to download experimental python
-# https://github.com/actions/setup-python/issues/718
-COPY <<EOF /etc/lsb-release
-DISTRIB_ID=Ubuntu
-DISTRIB_RELEASE=24.04
-DISTRIB_CODENAME=noble
-DISTRIB_DESCRIPTION="Ubuntu 24.04 LTS"
-EOF
-
-# Add the github CLI
-RUN dnf install -y \
-    gh
+  ln -s /etc/modulefiles/intel/mpi/latest "/usr/share/modulefiles/mpi/intel-$(arch)"
+  # Install intel modules
+  /opt/intel/oneapi/modulefiles-setup.sh --output-dir=/etc/modulefiles/intel
+fi
+EOR
 
 ###########
 # Cleanup #
@@ -113,34 +111,13 @@ RUN dnf clean all
 # See: https://github.com/actions/runner/blob/main/images/Dockerfile
 ENV ImageOS=fedora40
 ENV PATH="/github/home/.local/bin:$PATH"
-RUN adduser --uid 1001 runner -d /github/home \
-    && groupadd docker --gid 123 \
-    && usermod -aG wheel runner \
-    && usermod -aG docker runner \
-    && echo "%wheel   ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
-
-# Custom environment setup
-COPY <<"EOF" /etc/profile.d/setup-runner.sh
-# Default variables
-TOOLCHAIN=${TOOLCHAIN:-gcc}
-MPI_VARIANT=${MPI_VARIANT:-serial}
-
-# Setup environment
-if [[ "${TOOLCHAIN,,}" == "intel" ]]; then
-	source /opt/intel/oneapi/setvars.sh
-fi
-if [[ "${MPI_VARIANT,,}" != "serial" ]]; then
-	module load mpi/${MPI_VARIANT}
-fi
-
-# Print environment
-echo "::group::Available modules"
-module avail
-echo "::endgroup::"
-echo "::group::Loaded modules"
-module list
-echo "::endgroup::"
-EOF
+RUN <<EOR
+adduser --uid 1001 runner -d /github/home
+groupadd docker --gid 123
+usermod -aG wheel runner
+usermod -aG docker runner
+echo "%wheel   ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
+EOR
 
 WORKDIR /github/home
 USER runner
