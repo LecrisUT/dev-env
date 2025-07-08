@@ -9,21 +9,13 @@ on:
   push:
     branches: [ 'main' ]
   schedule:
-    - cron: 0 0 * * 2
+    - cron: 0 0 1-6,14-20 * 2
   workflow_dispatch:
     inputs:
-      build:
-        type: boolean
-        default: false
-        description: Rebuild the branch image
       push:
         type: boolean
         default: false
         description: Push the branch image
-      check-images:
-        type: boolean
-        default: true
-        description: Check images
 
 
 permissions:
@@ -47,7 +39,8 @@ jobs:
         ${{
           github.event_name == 'push' ||
           github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Push PR image') ||
-          github.event_name == 'workflow_dispatch' && inputs.push
+          github.event_name == 'workflow_dispatch' && inputs.push ||
+          github.event_name == 'schedule'
         }}
       rebuild: >-
         ${{
@@ -56,32 +49,15 @@ jobs:
     permissions:
       contents: read
       packages: write
-    if: >
-      github.event_name == 'push' ||
-      github.event_name == 'pull_request' ||
-      (github.event_name == 'workflow_dispatch' && inputs.build)
-
-  check_images:
-    name: 🔍 Check
-    needs: [ pre_commit ]
-    uses: ./.github/workflows/step_check-images.yaml
-    with:
-      make_pr: ${{ github.event_name == 'schedule' }}
-    permissions:
-      contents: read
-      packages: read
-    if: >
-      github.event_name == 'schedule' ||
-      (github.event_name == 'workflow_dispatch' && inputs.check-images)
 
   pass:
     name: ✅ Pass
-    needs: [ pre_commit, build_and_push, check_images ]
+    needs: [ pre_commit, build_and_push ]
     runs-on: ubuntu-latest
     steps:
       - name: Check all CI jobs
         uses: re-actors/alls-green@release/v1
         with:
-          allowed-skips: check_images, build_and_push
+          allowed-skips: build_and_push
           jobs: ${{ toJSON(needs) }}
     if: always()
