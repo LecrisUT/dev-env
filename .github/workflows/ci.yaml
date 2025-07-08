@@ -7,8 +7,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
-    branches: [ 'main', 'f*' ]
-    tags: [ 'v*' ]
+    branches: [ 'main' ]
   schedule:
     - cron: 0 0 * * 2
   workflow_dispatch:
